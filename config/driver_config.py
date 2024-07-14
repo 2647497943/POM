@@ -1,4 +1,5 @@
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 class DriverConfig:
     def driver_config(self):
@@ -23,6 +24,7 @@ class DriverConfig:
 
         driver = webdriver.Chrome(executable_path='../driver_files/chromedriver.exe',
                                   options=options)
+        # driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         driver.delete_all_cookies()
         # 刪除所有cookies
 
