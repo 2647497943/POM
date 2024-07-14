@@ -9,4 +9,7 @@ class AdminBase():
     def ninhao(self):
         return "//span[starts-with(text(), '您好')]"
 
+    def mianbanriqi(self):
+        return "//div[@class='btn-group ']/a/following-sibling::a"
+
 print(AdminBase().ninhao())
