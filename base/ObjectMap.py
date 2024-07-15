@@ -1,12 +1,13 @@
 import time
 
-from selenium.common.exceptions import ElementNotVisibleException, WebDriverException
+from selenium.common.exceptions import ElementNotVisibleException, WebDriverException,NoSuchElementException
 
 from POM.common.yaml_config import GetConf
 
 
 class ObjectMap():
     url = GetConf.get_url()
+
     # 获取基础地址
 
     def element_get(self, driver, loc_type, loc_value, timeout=10, must_be_visible=False):
@@ -131,6 +132,7 @@ class ObjectMap():
                 raise ElementNotVisibleException("元素没有出现，定位方式：" + loc_type + " 定位表达式：" + loc_values)
         else:
             pass
+
     def element_to_url(
             self,
             driver,
@@ -151,7 +153,7 @@ class ObjectMap():
         :return:
         """
         try:
-            driver.get(self.url+url)
+            driver.get(self.url + url)
 
             # 等待页面元素加载完成
             self.wait_for_ready_state_complete(driver)
@@ -169,3 +171,19 @@ class ObjectMap():
             )
         except Exception as e:
             print(f'跳转地址出现异常，异常原因：{e}')
+
+    def element_is_display(self, driver, loc_type, loc_value):
+        """
+        元素是否显示
+        :param driver:
+        :param loc_type:
+        :param loc_value:
+        :return:
+        """
+        try:
+            driver.find_element(by=loc_type, value=loc_value)
+            return True
+        except NoSuchElementException:
+            # 发生了NoSuchElementException异常，说明页面中未找到该元素，返回False
+            return False
+
