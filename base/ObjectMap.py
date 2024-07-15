@@ -254,3 +254,66 @@ class ObjectMap():
             raise Exception("元素填值失败")
 
         return True
+
+    def element_click(
+            self,
+            driver,
+            loc_type,
+            loc_value,
+            loc_type_disappear=None,
+            loc_value_disappear=None,
+            loc_type_appear=None,
+            loc_value_appear=None,
+            timeout=30
+    ):
+        """
+        元素点击
+        :param driver:
+        :param loc_type:
+        :param loc_value:
+        :param loc_type_disappear:等待页面元素消失的定位方式
+        :param loc_value_disappear:等待页面元素消失的定位表达式
+        :param loc_type_appear:等待页面元素出现的定位方式
+        :param loc_value_appear:等待页面元素出现的定位表达式
+        :param timeout:超时时间
+        :return:
+        """
+        # 元素可见
+        element = self.element_appear(
+            driver=driver,
+            loc_type=loc_type,
+            loc_values=loc_value,
+            timeout=timeout
+        )
+        try:
+            element.clear()
+        except StaleElementReferenceException:
+            self.wait_for_ready_state_complete(driver=driver)
+            time.sleep(0.06)
+            element = self.element_appear(
+                driver=driver,
+                loc_type=loc_type,
+                loc_values=loc_value,
+                timeout=timeout
+            )
+            element.clear()
+        except Exception as e:
+            print("页面出现异常，元素不可点击", e)
+            return False
+        try:
+            self.element_appear(
+                driver,
+                loc_type,
+                loc_value_appear
+            )
+            self.element_disappear(
+                driver,
+                loc_type,
+                loc_value_disappear
+            )
+        except Exception as e:
+            print(f"等待元素消失或出现失败", e)
+
+        return True
+
+
