@@ -1,6 +1,8 @@
 import time
 
-from selenium.common.exceptions import ElementNotVisibleException, WebDriverException,NoSuchElementException
+from selenium.common.exceptions import ElementNotVisibleException, WebDriverException, NoSuchElementException, \
+    StaleElementReferenceException
+from selenium.webdriver.common.keys import Keys
 
 from POM.common.yaml_config import GetConf
 
@@ -187,3 +189,68 @@ class ObjectMap():
             # 发生了NoSuchElementException异常，说明页面中未找到该元素，返回False
             return False
 
+    def element_fill_value(self, driver, loc_type, loc_value, fill_value, timeout):
+        """
+        元素填值
+        :param driver:
+        :param loc_type:
+        :param loc_value:
+        :param fill_value: 填入的值
+        :param timeout: 超时时间
+        :return:
+        """
+        # 元素必须先出现
+        element = self.element_appear(
+            driver,
+            loc_type=loc_type,
+            loc_values=loc_value,
+            timeout=timeout
+        )
+        try:
+            # 先清除元素中的原有值
+            element.clear()
+        except StaleElementReferenceException:  # 页面元素没有刷新出来，从而引发了这个异常
+            self.wait_for_ready_state_complete(driver=driver)
+            time.sleep(0.06)
+            element = self.element_appear(
+                driver,
+                loc_type=loc_type,
+                loc_values=loc_value,
+                timeout=timeout
+            )
+            try:
+                element.clear()
+            except Exception:
+                pass
+        except Exception:
+            pass
+        # 填入的值转成字符串
+        if type(fill_value) is int or type(fill_value) is float:
+            fill_value = str(fill_value)
+        try:
+            # 填入的值不是以\n结尾
+            if not fill_value.endswith('\n'):
+                element.send_keys(fill_value)
+                self.wait_for_ready_state_complete(driver=driver)
+            else:
+                fill_value = fill_value[:-1]
+                element.send_keys(fill_value)
+                element.send_keys(Keys.RETURN)
+                self.wait_for_ready_state_complete(driver=driver)
+        except StaleElementReferenceException:
+            self.wait_for_ready_state_complete(driver=driver)
+            time.sleep(0.06)
+            element = self.element_appear(driver, loc_type=loc_type, loc_values=loc_value)
+            element.clear()
+            if not fill_value.endswith('\n'):
+                element.send_keys(fill_value)
+                self.wait_for_ready_state_complete(driver=driver)
+            else:
+                fill_value = fill_value[:-1]
+                element.send_keys(fill_value)
+                element.send_keys(Keys.RETURN)
+                self.wait_for_ready_state_complete(driver=driver)
+        except Exception:
+            raise Exception("元素填值失败")
+
+        return True
