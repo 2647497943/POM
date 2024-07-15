@@ -12,4 +12,7 @@ class AdminBase():
     def mianbanriqi(self):
         return "//div[@class='btn-group ']/a/following-sibling::a"
 
+
+
+
 print(AdminBase().ninhao())
