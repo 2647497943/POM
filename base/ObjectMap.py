@@ -1,0 +1,40 @@
+import time
+
+from selenium.common.exceptions import ElementNotVisibleException
+
+class ObjectMap():
+    def element_get(self, driver, loc_type, loc_value, timeout=10, must_be_visible=False):
+        """
+        单个元素获取
+        :param driver:浏览器驱动
+        :param loc_type:定位方式类型
+        :param loc_value:定位表达式
+        :param timeout:超时时间
+        :param must_be_visible:元素是否必须可见，True是必须可见 False是默认值
+        :return:返回的元素
+        """
+        start_time = time.time() * 1000
+        # 开始时间
+        stop_ms = start_time + (timeout * 1000)
+        # 结束时间
+        for i in range(int(timeout * 10)):
+            # 查找元素
+            try:
+                element = driver.find_element(by=loc_type, value=loc_value)
+                if not must_be_visible:
+                    # 如果元素不是必须可见，就直接返回元素
+                    return element
+                else:
+                    # 如果元素必须是可见的，则需要先判断元素是否可见
+                    if element.is_displayed():
+                        return
+                    else:
+                        raise Exception()
+            except Exception:
+                now_ms = time.time() * 1000
+                if now_ms >= stop_ms:
+                    break
+                pass
+            time.sleep(0.1)
+        raise ElementNotVisibleException("元素定位失败，定位方式： " + loc_type + " 定位表达式： " + loc_value)
+
