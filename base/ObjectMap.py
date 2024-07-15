@@ -2,8 +2,13 @@ import time
 
 from selenium.common.exceptions import ElementNotVisibleException, WebDriverException
 
+from POM.common.yaml_config import GetConf
+
 
 class ObjectMap():
+    url = GetConf.get_url()
+    # 获取基础地址
+
     def element_get(self, driver, loc_type, loc_value, timeout=10, must_be_visible=False):
         """
         单个元素获取
@@ -68,7 +73,7 @@ class ObjectMap():
                 time.sleep(0.1)
         raise Exception(f"打开网页时，页面元素在{timeout}秒后仍然没有完全加载完")
 
-    def element_displayed(self, driver, loc_type, loc_value, timeout=30):
+    def element_disappear(self, driver, loc_type, loc_value, timeout=30):
         """
         等待页面元素消失
         :param driver:浏览器
@@ -126,3 +131,41 @@ class ObjectMap():
                 raise ElementNotVisibleException("元素没有出现，定位方式：" + loc_type + " 定位表达式：" + loc_values)
         else:
             pass
+    def element_to_url(
+            self,
+            driver,
+            url,
+            loc_type_disappear=None,
+            loc_value_disappear=None,
+            loc_type_appear=None,
+            loc_value_appear=None
+    ):
+        """
+        跳转地址
+        :param driver:浏览器驱动
+        :param url: 地址
+        :param loc_type_disappear:等待页面元素消失的定位方式
+        :param loc_value_disappear:等待页面元素消失的定位表达式
+        :param loc_type_appear:等待页面元素出现的定位方式
+        :param loc_value_appear:等待页面元素出现的定位表达式
+        :return:
+        """
+        try:
+            driver.get(self.url+url)
+
+            # 等待页面元素加载完成
+            self.wait_for_ready_state_complete(driver)
+            # 跳转地址后等待元素消失
+            self.element_disappear(
+                driver,
+                loc_type_disappear,
+                loc_value_disappear
+            )
+            # 跳转后等待元素出现
+            self.element_appear(
+                driver,
+                loc_type_appear,
+                loc_value_appear
+            )
+        except Exception as e:
+            print(f'跳转地址出现异常，异常原因：{e}')
