@@ -1,4 +1,9 @@
-请输入账号或邮箱: admin
-及密码...: 123456
+user:
+  admin:
+    username: admin
+    password: 123456
+  zzz:
+    username: zzz
+    password: 123
 
 url: http://192.168.2.203:8080

@@ -7,10 +7,9 @@ from selenium.webdriver.common.keys import Keys
 from POM.common.yaml_config import GetConf
 
 
-class ObjectMap():
-    url = GetConf.get_url()
-
+class ObjectMap:
     # 获取基础地址
+    url = GetConf().get_url()
 
     def element_get(self, driver, loc_type, loc_value, timeout=10, must_be_visible=False):
         """
@@ -60,7 +59,7 @@ class ObjectMap():
         # 结束时间
         for i in range(int(timeout * 10)):
             try:
-                ready_state = driver.excute_script("return document.readyState")
+                ready_state = driver.execute_script("return document.readyState")
             except WebDriverException:
                 time.sleep(0.03)
                 # 如果有driver的错误，执行js会失败，就直接跳过
@@ -104,12 +103,12 @@ class ObjectMap():
         else:
             pass
 
-    def element_appear(self, driver, loc_type, loc_values, timeout=30):
+    def element_appear(self, driver, loc_type, loc_value, timeout=30):
         """
         等待页面元素出现
         :param driver:
         :param loc_type:
-        :param loc_values:
+        :param loc_value:
         :param timeout:
         :return:
         """
@@ -120,7 +119,7 @@ class ObjectMap():
             # 结束时间
             for i in range(int(timeout * 10)):
                 try:
-                    element = driver.find_element(by=loc_type, value=loc_values)
+                    element = driver.find_element(by=loc_type, value=loc_value)
                     if element.is_displayed():
                         return element
                     else:
@@ -131,7 +130,7 @@ class ObjectMap():
                         break
                     time.sleep(0.1)
                     pass
-                raise ElementNotVisibleException("元素没有出现，定位方式：" + loc_type + " 定位表达式：" + loc_values)
+                raise ElementNotVisibleException("元素没有出现，定位方式：" + loc_type + " 定位表达式：" + loc_value)
         else:
             pass
 
@@ -173,6 +172,8 @@ class ObjectMap():
             )
         except Exception as e:
             print(f'跳转地址出现异常，异常原因：{e}')
+            return False
+        return True
 
     def element_is_display(self, driver, loc_type, loc_value):
         """
@@ -189,7 +190,7 @@ class ObjectMap():
             # 发生了NoSuchElementException异常，说明页面中未找到该元素，返回False
             return False
 
-    def element_fill_value(self, driver, loc_type, loc_value, fill_value, timeout):
+    def element_fill_value(self, driver, loc_type, loc_value, fill_value, timeout=30):
         """
         元素填值
         :param driver:
@@ -203,7 +204,7 @@ class ObjectMap():
         element = self.element_appear(
             driver,
             loc_type=loc_type,
-            loc_values=loc_value,
+            loc_value=loc_value,
             timeout=timeout
         )
         try:
@@ -215,7 +216,7 @@ class ObjectMap():
             element = self.element_appear(
                 driver,
                 loc_type=loc_type,
-                loc_values=loc_value,
+                loc_value=loc_value,
                 timeout=timeout
             )
             try:
@@ -240,7 +241,7 @@ class ObjectMap():
         except StaleElementReferenceException:
             self.wait_for_ready_state_complete(driver=driver)
             time.sleep(0.06)
-            element = self.element_appear(driver, loc_type=loc_type, loc_values=loc_value)
+            element = self.element_appear(driver, loc_type=loc_type, loc_value=loc_value)
             element.clear()
             if not fill_value.endswith('\n'):
                 element.send_keys(fill_value)
@@ -278,42 +279,48 @@ class ObjectMap():
         :param timeout:超时时间
         :return:
         """
-        # 元素可见
-        element = self.element_appear(
-            driver=driver,
-            loc_type=loc_type,
-            loc_values=loc_value,
-            timeout=timeout
-        )
         try:
-            element.clear()
+            # 元素可见
+            element = self.element_appear(
+                driver=driver,
+                loc_type=loc_type,
+                loc_value=loc_value,
+                timeout=timeout
+            )
+            # 点击元素
+            element.click()
         except StaleElementReferenceException:
             self.wait_for_ready_state_complete(driver=driver)
             time.sleep(0.06)
             element = self.element_appear(
                 driver=driver,
                 loc_type=loc_type,
-                loc_values=loc_value,
+                loc_value=loc_value,
                 timeout=timeout
             )
-            element.clear()
+            element.click()
         except Exception as e:
-            print("页面出现异常，元素不可点击", e)
+            print("页面出现异常，元素不可点击:", e)
             return False
+
         try:
-            self.element_appear(
-                driver,
-                loc_type,
-                loc_value_appear
-            )
-            self.element_disappear(
-                driver,
-                loc_type,
-                loc_value_disappear
-            )
+            # 点击元素后的元素出现或消失
+            if loc_type_appear and loc_value_appear:
+                self.element_appear(
+                    driver=driver,
+                    loc_type=loc_type_appear,
+                    loc_value=loc_value_appear,
+                    timeout=timeout
+                )
+            if loc_type_disappear and loc_value_disappear:
+                self.element_disappear(
+                    driver=driver,
+                    loc_type=loc_type_disappear,
+                    loc_value=loc_value_disappear,
+                    timeout=timeout
+                )
         except Exception as e:
-            print(f"等待元素消失或出现失败", e)
+            print(f"等待元素消失或出现失败:", e)
+            return False
 
         return True
-
-

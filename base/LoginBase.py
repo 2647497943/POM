@@ -1,9 +1,9 @@
 class LoginBase():
     def login_input(self, input_placeholder):
-        return "//input[@placeholder='"+input_placeholder+"']"
+        return "//input[@placeholder='" + input_placeholder + "']"
 
-    def login_btn(self,button_name):
-        return "//button[text()='"+button_name+"']"
+    def login_btn(self, button_name):
+        return "//button[text()='" + button_name + "']"
 
 
 if __name__ == '__main__':
